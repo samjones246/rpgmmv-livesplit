@@ -45,7 +45,10 @@
     ConfigManager['autoReset'] = true;
 
     var loading = false;
-    var room = 0;
+    var prevRoom = 0;
+    var prevSwitches = [];
+    var prevVariables = [];
+    var prevEvent = 0;
 
     // Overwrite SceneManager.changeScene (called each frame, handles scene transitions)
     var _SceneManager_changeScene = SceneManager.changeScene;
@@ -60,15 +63,32 @@
         }else if (SceneManager.isCurrentSceneStarted() && loading){
             sendMessage("unpausegametime\r\n");
             loading = false;
+        }
+
+        if ($gameMap){
             // Check transition splits
             splits["transition"].forEach(split => {
-                if (split.enabled && split.from == room && split.to == $gameMap.mapId()){
+                if (split.enabled && split.from == prevRoom && split.to == $gameMap.mapId()){
                     sendMessage("split\r\n");
                 }
             });
-            room = $gameMap.mapId();
+            prevRoom = $gameMap.mapId();
         }
     }
+
+    // Switch splits
+    var _Game_Switches_setValue = Game_Switches.prototype.setValue;
+    Game_Switches.prototype.setValue = function(switchId, value) {
+        if (value != $gameSwitches.value(switchId)){
+            splits["switch"].forEach(split => {
+                if (split.enabled && split.switch == switchId && split.value == value){
+                    sendMessage("split\r\n");
+                }
+            });
+        }
+        _Game_Switches_setValue.call(this, switchId, value);
+    }
+
 
     // Auto Start
     var _Scene_Title_commandNewGame = Scene_Title.prototype.commandNewGame;
