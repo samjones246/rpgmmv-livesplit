@@ -3,8 +3,9 @@
 * @author CaptainRektbeard
 */  
 (function() {
-    // Initiate connection to LiveSplit
     var net = require('net');
+    var fs = require('fs');
+    // Initiate connection to LiveSplit
     var PIPE_NAME = "LiveSplit";
     var PIPE_PATH = "\\\\.\\pipe\\" + PIPE_NAME;
     var client = net.connect(PIPE_PATH);
@@ -13,11 +14,6 @@
         client = net.connect(PIPE_PATH, callback);
     }
 
-    ConfigManager['autoStart'] = true;
-    ConfigManager['autoSplit'] = true;
-    ConfigManager['autoReset'] = true;
-    var loading = false;
-
     function sendMessage(message) {
         try{
             client.write(message);
@@ -25,6 +21,31 @@
             initConnection(function(){client.write(message);});
         }
     }
+
+    var splits = {
+        "transition": [],
+        "switch": [],
+        "variable": [],
+        "event": [],
+    }
+    // Load split preferences from Autosplitter.json
+    fs.readFile('./js/plugins/Autosplitter.json', 'utf8', (err, data) => {
+        if (err) {
+            console.log(`Error reading file from disk: ${err}`);
+        } else {
+            JSON.parse(data).forEach(element => {
+                splits[element.type].push(element);
+            });;
+        }
+    });
+
+    // Create settings entries, default to true
+    ConfigManager['autoStart'] = true;
+    ConfigManager['autoSplit'] = true;
+    ConfigManager['autoReset'] = true;
+
+    var loading = false;
+    var room = 0;
 
     // Overwrite SceneManager.changeScene (called each frame, handles scene transitions)
     var _SceneManager_changeScene = SceneManager.changeScene;
@@ -39,6 +60,13 @@
         }else if (SceneManager.isCurrentSceneStarted() && loading){
             sendMessage("unpausegametime\r\n");
             loading = false;
+            // Check transition splits
+            splits["transition"].forEach(split => {
+                if (split.enabled && split.from == room && split.to == $gameMap.mapId()){
+                    sendMessage("split\r\n");
+                }
+            });
+            room = $gameMap.mapId();
         }
     }
 
@@ -60,14 +88,13 @@
         }
     }
 
-    // Add plugin commands
+    // Add plugin command for entending functionality from events
     var _Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
     Game_Interpreter.prototype.pluginCommand = function(command, args) {
         _Game_Interpreter_pluginCommand.call(this, command, args);
         switch (command.toUpperCase()) {
-            case "LIVESPLIT_split":
-                console.log("split");
-                sendMessage("split\r\n");
+            case "LIVESPLIT":
+                sendMessage(args.slice(1).join(" ") + "\r\n");
                 break;
         }
     }
