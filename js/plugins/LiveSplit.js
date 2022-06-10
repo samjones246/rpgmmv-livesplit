@@ -79,9 +79,9 @@
     // Switch splits
     var _Game_Switches_setValue = Game_Switches.prototype.setValue;
     Game_Switches.prototype.setValue = function(switchId, value) {
-        if (value != $gameSwitches.value(switchId)){
+        if (!!value != !!$gameSwitches.value(switchId)){
             splits["switch"].forEach(split => {
-                if (split.enabled && split.switch == switchId && split.value == value){
+                if (split.enabled && split.id == switchId && (split.any || split.value == !!value)){
                     sendMessage("split\r\n");
                 }
             });
@@ -89,6 +89,18 @@
         _Game_Switches_setValue.call(this, switchId, value);
     }
 
+    // Variable splits
+    var _Game_Variables_setValue = Game_Variables.prototype.setValue;
+    Game_Variables.prototype.setValue = function(variableId, value) {
+        if (value != $gameVariables.value(variableId)){
+            splits["variable"].forEach(split => {
+                if (split.enabled && split.id == variableId && (split.any || split.value == value)){
+                    sendMessage("split\r\n");
+                }
+            });
+        }
+        _Game_Variables_setValue.call(this, variableId, value);
+    }
 
     // Auto Start
     var _Scene_Title_commandNewGame = Scene_Title.prototype.commandNewGame;
