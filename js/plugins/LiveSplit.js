@@ -103,7 +103,7 @@
     }
 
     // Event splits
-    // Local events
+    // -Local events
     var _Game_Map_setupStartingMapEvent = Game_Map.prototype.setupStartingMapEvent;
     Game_Map.prototype.setupStartingMapEvent = function() {
         var events = this.events();
@@ -120,7 +120,50 @@
         }
         _Game_Map_setupStartingMapEvent.call(this);
     }
-    // Common events
+    // -Common events
+    // --Triggered from code
+    var _Game_Interpreter_command117= Game_Interpreter.prototype.command117;
+    Game_Interpreter.prototype.command117 = function() {
+        var eventId = this._params[0];
+        console.log("Starting called common event: " + eventId);
+        splits["event"].forEach(split => {
+            if (split.enabled && split.common && split.event == eventId){
+                sendMessage("split\r\n");
+            }
+        });
+        return _Game_Interpreter_command117.call(this);
+    }
+
+    // --Autorun
+    var _Game_Map_setupAutorunCommonEvent = Game_Map.prototype.setupAutorunCommonEvent;
+    Game_Map.prototype.setupAutorunCommonEvent = function() {
+        for (var i = 0; i < $dataCommonEvents.length; i++) {
+            var event = $dataCommonEvents[i];
+            if (event && event.trigger === 1 && $gameSwitches.value(event.switchId)) {
+                console.log("Starting autorun common event: " + event.id);
+                splits["event"].forEach(split => {
+                    if (split.enabled && split.common && split.event == event.id){
+                        sendMessage("split\r\n");
+                    }
+                });
+            }
+        }
+        return _Game_Map_setupAutorunCommonEvent.call(this);
+    }
+
+    // --Parallel
+    var _Game_CommonEvent_update = Game_CommonEvent.prototype.update;
+    Game_CommonEvent.prototype.update = function() {
+        if (this._interpreter && !this._interpreter.isRunning()){
+            console.log("Starting parallel common event: " + this._commonEventId);
+            splits["event"].forEach(split => {
+                if (split.enabled && split.common && split.event == this._commonEventId){
+                    sendMessage("split\r\n");
+                }
+            });
+        }
+        _Game_CommonEvent_update.call(this);
+    }
 
 
     // Auto Start
