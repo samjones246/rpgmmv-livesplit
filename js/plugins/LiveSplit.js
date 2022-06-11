@@ -46,9 +46,6 @@
 
     var loading = false;
     var prevRoom = 0;
-    var prevSwitches = [];
-    var prevVariables = [];
-    var prevEvent = 0;
 
     // Overwrite SceneManager.changeScene (called each frame, handles scene transitions)
     var _SceneManager_changeScene = SceneManager.changeScene;
