@@ -46,6 +46,7 @@
 
     var loading = false;
     var prevRoom = 0;
+    var callstack = [];
 
     // Overwrite SceneManager.changeScene (called each frame, handles scene transitions)
     var _SceneManager_changeScene = SceneManager.changeScene;
@@ -107,28 +108,25 @@
         for (var i = 0; i < events.length; i++) {
             var event = events[i];
             if (event.isStarting()) {
-                console.log("Starting event: " + this.mapId() + ":" + event.eventId() + ":" + event._pageIndex);
-                splits["event"].forEach(split => {
-                    if (split.enabled && !split.common && split.map == this.mapId() && split.event == event.eventId() && split.page == event._pageIndex + 1){
-                        sendMessage("split\r\n");
-                    }
-                });
+                this._interpreter._ls_pageIndex = event._pageIndex;
+                break;
             }
         }
-        _Game_Map_setupStartingMapEvent.call(this);
+        return _Game_Map_setupStartingMapEvent.call(this);
     }
     // -Common events
     // --Triggered from code
     var _Game_Interpreter_command117= Game_Interpreter.prototype.command117;
     Game_Interpreter.prototype.command117 = function() {
-        var eventId = this._params[0];
-        console.log("Starting called common event: " + eventId);
-        splits["event"].forEach(split => {
-            if (split.enabled && split.common && split.event == eventId){
-                sendMessage("split\r\n");
-            }
-        });
+        this._ls_nextid = this._params[0];
         return _Game_Interpreter_command117.call(this);
+    }
+
+    var _Game_Interpreter_setupChild = Game_Interpreter.prototype.setupChild;
+    Game_Interpreter.prototype.setupChild = function(list, eventId) {
+        this._childInterpreter = new Game_Interpreter(this._depth + 1);
+        this._childInterpreter._ls_eventId = this._ls_nextid;
+        this._childInterpreter.setup(list, eventId);
     }
 
     // --Autorun
@@ -137,12 +135,8 @@
         for (var i = 0; i < $dataCommonEvents.length; i++) {
             var event = $dataCommonEvents[i];
             if (event && event.trigger === 1 && $gameSwitches.value(event.switchId)) {
-                console.log("Starting autorun common event: " + event.id);
-                splits["event"].forEach(split => {
-                    if (split.enabled && split.common && split.event == event.id){
-                        sendMessage("split\r\n");
-                    }
-                });
+                this._interpreter._ls_eventId = event.id;
+                break;
             }
         }
         return _Game_Map_setupAutorunCommonEvent.call(this);
@@ -152,16 +146,44 @@
     var _Game_CommonEvent_update = Game_CommonEvent.prototype.update;
     Game_CommonEvent.prototype.update = function() {
         if (this._interpreter && !this._interpreter.isRunning()){
-            console.log("Starting parallel common event: " + this._commonEventId);
-            splits["event"].forEach(split => {
-                if (split.enabled && split.common && split.event == this._commonEventId){
-                    sendMessage("split\r\n");
-                }
-            });
+            this._interpreter._ls_eventId = this._commonEventId;
         }
         _Game_CommonEvent_update.call(this);
     }
 
+    var _Game_Interpreter_setup = Game_Interpreter.prototype.setup;
+    Game_Interpreter.prototype.setup = function(list, eventId) {
+        _Game_Interpreter_setup.call(this, list, eventId);
+        var common = this._eventId == 0 || this._depth > 0;
+        this._ls_splitLines = [];
+        splits["event"].forEach(split => {
+            if (!split.enabled || !!split.common != common){
+                return;
+            }
+            if (common){
+                if (split.event == this._ls_eventId){
+                    console.log("Registering split for common event " + this._ls_eventId + " line " + split.line);
+                    this._ls_splitLines.push(split.line)
+                }
+            } else {
+                if (split.map == this._mapId && split.event == this._eventId && split.page == this._ls_pageIndex + 1){
+                    console.log("Registering split for event " + split.map + ":" + split.event + ":" + split.page + " line " + split.line);
+                    this._ls_splitLines.push(split.line)
+                }
+            }
+        });
+        this._ls_splitLines.sort(function(a, b){return b - a})
+    }
+
+    var _Game_Interpreter_executeCommand = Game_Interpreter.prototype.executeCommand;
+    Game_Interpreter.prototype.executeCommand = function() {
+        var lasti = this._ls_splitLines.length -1;
+        if (this._ls_splitLines.length > 0 && (this._index == this._ls_splitLines[lasti] || this._index >= this._list.length && this._ls_splitLines[lasti] == -1)){
+            sendMessage("split\r\n");
+            this._ls_splitLines.pop();
+        }
+        return _Game_Interpreter_executeCommand.call(this);
+    }
 
     // Auto Start
     var _Scene_Title_commandNewGame = Scene_Title.prototype.commandNewGame;
