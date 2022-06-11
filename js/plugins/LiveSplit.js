@@ -102,6 +102,27 @@
         _Game_Variables_setValue.call(this, variableId, value);
     }
 
+    // Event splits
+    // Local events
+    var _Game_Map_setupStartingMapEvent = Game_Map.prototype.setupStartingMapEvent;
+    Game_Map.prototype.setupStartingMapEvent = function() {
+        var events = this.events();
+        for (var i = 0; i < events.length; i++) {
+            var event = events[i];
+            if (event.isStarting()) {
+                console.log("Starting event: " + this.mapId() + ":" + event.eventId() + ":" + event._pageIndex);
+                splits["event"].forEach(split => {
+                    if (split.enabled && !split.common && split.map == this.mapId() && split.event == event.eventId() && split.page == event._pageIndex + 1){
+                        sendMessage("split\r\n");
+                    }
+                });
+            }
+        }
+        _Game_Map_setupStartingMapEvent.call(this);
+    }
+    // Common events
+
+
     // Auto Start
     var _Scene_Title_commandNewGame = Scene_Title.prototype.commandNewGame;
     Scene_Title.prototype.commandNewGame = function() {
