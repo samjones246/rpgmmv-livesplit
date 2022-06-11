@@ -108,6 +108,7 @@
         for (var i = 0; i < events.length; i++) {
             var event = events[i];
             if (event.isStarting()) {
+                console.log("Starting event " + this.mapId() + ":" + event._eventId + ":" + event._pageIndex);
                 this._interpreter._ls_pageIndex = event._pageIndex;
                 break;
             }
