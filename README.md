@@ -11,7 +11,7 @@ A plugin for RPG Maker MV games which adds LiveSplit server integration, enablin
 Firstly, if you haven't already, you'll need to install the LiveSplit Server component, which allows LiveSplit to receive commands from this mod. If you've already done this when setting this mod up for another game, you can skip this step. Download the latest release ([link](https://github.com/LiveSplit/LiveSplit.Server/releases)) of LiveSplit.Server.zip, and extract the file to `<livesplit install folder>/Components`. Now open LiveSplit and navigate to Edit Layout -> Add (+) -> Control -> LiveSplit Server.
 
 
-Next, download LiveSplit.js from this repository and copy it to `<game install folder>/www/js/plugins/`. Then, open `<game install folder>/www/js/plugins.js` in a text editor such as notepad. If you scroll down to the bottom of the file, you'll see something like the following:
+Next, download [LiveSplit.js](https://raw.githubusercontent.com/samjones246/rpgmmv-livesplit/master/js/plugins/LiveSplit.js) from this repository and copy it to `<game install folder>/www/js/plugins/`. Then, open `<game install folder>/www/js/plugins.js` in a text editor such as notepad. If you scroll down to the bottom of the file, you'll see something like the following:
 
 
     {name:"blah", status:true, "description":"blah blah blah"...}
