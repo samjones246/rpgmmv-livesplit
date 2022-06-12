@@ -16,7 +16,9 @@
 
     function sendMessage(message) {
         try{
-            client.write(message);
+            if (ConfigManager["autosplit"] || message != "split\r\n") {
+                client.write(message);
+            }
         } catch(e) {
             initConnection(function(){client.write(message);});
         }
