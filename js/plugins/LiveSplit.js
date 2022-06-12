@@ -28,15 +28,44 @@
         "variable": [],
         "event": [],
     }
-    // Load split preferences from Autosplitter.json
-    fs.readFile('./js/plugins/Autosplitter.json', 'utf8', (err, data) => {
+
+    var prefs = {}
+    var genSettings = false;
+
+    // Load split preferences from AutosplitterSettings.json
+    fs.readFile('./js/plugins/AutosplitterSettings.json', 'utf8', (err, data) => {
         if (err) {
-            console.log(`Error reading file from disk: ${err}`);
+            console.log(`No AutosplitterSettings.json found, one will be generated`);
+            genSettings = true;
         } else {
-            JSON.parse(data).forEach(element => {
-                splits[element.type].push(element);
-            });;
+            prefs = JSON.parse(data);
         }
+
+        // Load split descriptions from Autosplitter.json
+        fs.readFile('./js/plugins/Autosplitter.json', 'utf8', (err2, data2) => {
+            if (err2) {
+                console.log(`No Autosplitter.json found`);
+            } else {
+                var _data = JSON.parse(data2);
+                if (genSettings){
+                    prefs = _data.defaults;
+                }
+                _data.splits.forEach(element => {
+                    element.enabled = prefs[element.name];
+                    splits[element.type].push(element);
+                });
+                // Generate settings file
+                if (genSettings){
+                    fs.writeFile('./js/plugins/AutosplitterSettings.json', JSON.stringify(prefs, null, 4), (err3) => {
+                        if (err3) {
+                            console.log(`Error writing file to disk: ${err}`);
+                        } else {
+                            console.log('AutosplitterSettings.json generated');
+                        }
+                    });
+                }
+            }
+        });
     });
 
     // Create settings entries, default to true
