@@ -32,7 +32,7 @@ The end of the file should now look like this:
     ];
 
 
-Save the file, and the plugin should be enabled. 
+Save the file, and the plugin should be enabled. Next time you launch the game, you can find settings for auto start/split/reset in the in-game settings menu. These may be disabled initially, in which case you'll need to enable them before the plugin will have any effect.
 
 
 If there is an Autosplitter.json file avaialable for this game, you can install it by dropping it into `<game install folder>/`. The autosplitter will implement a selection of different split points, but you can choose which ones are enabled by editing AutosplitterSettings.json (in the same directory). This file will be generated the first time you run the game with the autosplitter installed, and will be populated with the defaults specified by the author of the autosplitter. The file should look something like this:
