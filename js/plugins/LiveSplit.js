@@ -16,8 +16,9 @@
 
     function sendMessage(message) {
         try{
-            if (ConfigManager["autoSplit"] || message != "split\r\n") {
-                client.write(message);
+            var key = "auto"+message
+            if (!(key in ConfigManager) || ConfigManager[key]) {
+                client.write(message + "\r\n");
             }
         } catch(e) {
             initConnection(function(){client.write(message);});
@@ -33,6 +34,7 @@
 
     var prefs = {}
     var genSettings = false;
+    var startOverridden = false;
 
     // Load split preferences from AutosplitterSettings.json
     fs.readFile('./AutosplitterSettings.json', 'utf8', (err, data) => {
@@ -61,6 +63,9 @@
                     }else{
                         element.enabled = prefs[element.name];
                         splits[element.type].push(element);
+                    }
+                    if (element.start){
+                        startOverridden = true;
                     }
                 });
                 // Generate settings file
@@ -93,11 +98,11 @@
 
         // Loading started
         if (!SceneManager.isCurrentSceneStarted() && !loading){
-            sendMessage("pausegametime\r\n");
+            sendMessage("pausegametime");
             loading = true;
         // Loading finished
         }else if (SceneManager.isCurrentSceneStarted() && loading){
-            sendMessage("unpausegametime\r\n");
+            sendMessage("unpausegametime");
             loading = false;
         }
 
@@ -105,7 +110,7 @@
             // Check transition splits
             splits["transition"].forEach(split => {
                 if (split.enabled && split.from == prevRoom && split.to == $gameMap.mapId()){
-                    sendMessage("split\r\n");
+                    sendMessage(split.start ? "start" : "split");
                 }
             });
             prevRoom = $gameMap.mapId();
@@ -118,7 +123,7 @@
         if (!!value != !!$gameSwitches.value(switchId)){
             splits["switch"].forEach(split => {
                 if (split.enabled && split.id == switchId && (split.any || split.value == !!value)){
-                    sendMessage("split\r\n");
+                    sendMessage(split.start ? "start" : "split");
                 }
             });
         }
@@ -131,7 +136,7 @@
         if (value != $gameVariables.value(variableId)){
             splits["variable"].forEach(split => {
                 if (split.enabled && split.id == variableId && (split.any || split.value == value)){
-                    sendMessage("split\r\n");
+                    sendMessage(split.start ? "start" : "split");
                 }
             });
         }
@@ -219,7 +224,7 @@
         if (this._ls_splitLines){
             var lasti = this._ls_splitLines.length -1;
             if (this._ls_splitLines.length > 0 && (this._index == this._ls_splitLines[lasti] || this._index >= this._list.length && this._ls_splitLines[lasti] == -1)){
-                sendMessage("split\r\n");
+                sendMessage(split.start ? "start" : "split");
                 this._ls_splitLines.pop();
             }
         }
@@ -230,8 +235,8 @@
     var _Scene_Title_commandNewGame = Scene_Title.prototype.commandNewGame;
     Scene_Title.prototype.commandNewGame = function() {
         _Scene_Title_commandNewGame.call(this);
-        if (ConfigManager['autoStart']){
-            sendMessage("starttimer\r\n");
+        if (ConfigManager['autoStart'] && !startOverridden){
+            sendMessage("starttimer");
         }
     }
 
@@ -240,7 +245,7 @@
     SceneManager.onKeyDown = function(event) {
         _SceneManager_onKeyDown.call(this, event);
         if (event.keyCode === 116 && ConfigManager['autoReset']) {
-            sendMessage("reset\r\n");
+            sendMessage("reset");
         }
     }
 
@@ -250,7 +255,7 @@
         _Game_Interpreter_pluginCommand.call(this, command, args);
         switch (command.toUpperCase()) {
             case "LIVESPLIT":
-                sendMessage(args.slice(1).join(" ") + "\r\n");
+                sendMessage(args.slice(1).join(" "));
                 break;
         }
     }
