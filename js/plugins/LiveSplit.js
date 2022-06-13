@@ -53,8 +53,15 @@
                     prefs = _data.defaults;
                 }
                 _data.splits.forEach(element => {
-                    element.enabled = prefs[element.name];
-                    splits[element.type].push(element);
+                    if (element.activators){
+                        element.activators.forEach(activator => {
+                            activator.enabled = prefs[element.name]
+                            splits[activator.type].push(activator);
+                        });
+                    }else{
+                        element.enabled = prefs[element.name];
+                        splits[element.type].push(element);
+                    }
                 });
                 // Generate settings file
                 if (genSettings){
