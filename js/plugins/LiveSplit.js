@@ -51,8 +51,12 @@
                 console.log(`No Autosplitter.json found`);
             } else {
                 var _data = JSON.parse(data2);
-                if (genSettings){
-                    prefs = _data.defaults;
+                for (splitName in _data.defaults){
+                    if (!(splitName in prefs)){
+                        console.log("Split not present in settings file: " + splitName);
+                        genSettings = true;
+                        prefs[splitName] = _data.defaults[splitName];
+                    }
                 }
                 _data.splits.forEach(element => {
                     if (element.activators){
@@ -199,7 +203,7 @@
     Game_Interpreter.prototype.setup = function(list, eventId) {
         _Game_Interpreter_setup.call(this, list, eventId);
         var common = this._eventId == 0 || this._depth > 0;
-        this._ls_splitLines = [];
+        this._ls_splits = [];
         splits["event"].forEach(split => {
             if (!split.enabled || !!split.common != common){
                 return;
@@ -207,25 +211,25 @@
             if (common){
                 if (split.event == this._ls_eventId){
                     console.log("Registering split for common event " + this._ls_eventId + " line " + split.line);
-                    this._ls_splitLines.push(split.line)
+                    this._ls_splits.push(split)
                 }
             } else {
                 if (split.map == this._mapId && split.event == this._eventId && split.page == this._ls_pageIndex + 1){
                     console.log("Registering split for event " + split.map + ":" + split.event + ":" + split.page + " line " + split.line);
-                    this._ls_splitLines.push(split.line)
+                    this._ls_splits.push(split)
                 }
             }
         });
-        this._ls_splitLines.sort(function(a, b){return b - a})
+        this._ls_splits.sort(function(a, b){return b.line - a.line})
     }
 
     var _Game_Interpreter_executeCommand = Game_Interpreter.prototype.executeCommand;
     Game_Interpreter.prototype.executeCommand = function() {
-        if (this._ls_splitLines){
-            var lasti = this._ls_splitLines.length -1;
-            if (this._ls_splitLines.length > 0 && (this._index == this._ls_splitLines[lasti] || this._index >= this._list.length && this._ls_splitLines[lasti] == -1)){
-                sendMessage(split.start ? "start" : "split");
-                this._ls_splitLines.pop();
+        if (this._ls_splits){
+            var lasti = this._ls_splits.length -1;
+            if (this._ls_splits.length > 0 && (this._index == this._ls_splits[lasti].line || (this._index >= this._list.length && this._ls_splits[lasti].line == -1))){
+                sendMessage(this._ls_splits[lasti].start ? "start" : "split");
+                this._ls_splits.pop();
             }
         }
         return _Game_Interpreter_executeCommand.call(this);
