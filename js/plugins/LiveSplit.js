@@ -209,10 +209,12 @@
 
     var _Game_Interpreter_executeCommand = Game_Interpreter.prototype.executeCommand;
     Game_Interpreter.prototype.executeCommand = function() {
-        var lasti = this._ls_splitLines.length -1;
-        if (this._ls_splitLines.length > 0 && (this._index == this._ls_splitLines[lasti] || this._index >= this._list.length && this._ls_splitLines[lasti] == -1)){
-            sendMessage("split\r\n");
-            this._ls_splitLines.pop();
+        if (this._ls_splitLines){
+            var lasti = this._ls_splitLines.length -1;
+            if (this._ls_splitLines.length > 0 && (this._index == this._ls_splitLines[lasti] || this._index >= this._list.length && this._ls_splitLines[lasti] == -1)){
+                sendMessage("split\r\n");
+                this._ls_splitLines.pop();
+            }
         }
         return _Game_Interpreter_executeCommand.call(this);
     }
