@@ -10,6 +10,11 @@
     var PIPE_PATH = "\\\\.\\pipe\\" + PIPE_NAME;
     var client = net.connect(PIPE_PATH);
 
+    function log(msg){
+		console.log(msg);
+		fs.appendFile("LiveSplit.log", msg+"\n");
+	}
+
     function initConnection(callback){
         client = net.connect(PIPE_PATH, callback);
     }
@@ -39,7 +44,7 @@
     // Load split preferences from AutosplitterSettings.json
     fs.readFile('./AutosplitterSettings.json', 'utf8', (err, data) => {
         if (err) {
-            console.log(`No AutosplitterSettings.json found, one will be generated`);
+            log(`No AutosplitterSettings.json found, one will be generated`);
             genSettings = true;
         } else {
             prefs = JSON.parse(data);
@@ -48,12 +53,12 @@
         // Load split descriptions from Autosplitter.json
         fs.readFile('./Autosplitter.json', 'utf8', (err2, data2) => {
             if (err2) {
-                console.log(`No Autosplitter.json found`);
+                log(`No Autosplitter.json found`);
             } else {
                 var _data = JSON.parse(data2);
                 for (splitName in _data.defaults){
                     if (!(splitName in prefs)){
-                        console.log("Split not present in settings file: " + splitName);
+                        log("Split not present in settings file: " + splitName);
                         genSettings = true;
                         prefs[splitName] = _data.defaults[splitName];
                     }
@@ -76,13 +81,12 @@
                 if (genSettings){
                     fs.writeFile('./AutosplitterSettings.json', JSON.stringify(prefs, null, 4), (err3) => {
                         if (err3) {
-                            console.log(`Error writing file to disk: ${err}`);
+                            log(`Error writing file to disk: ${err}`);
                         } else {
-                            console.log('AutosplitterSettings.json generated');
+                            log('AutosplitterSettings.json generated');
                         }
                     });
                 }
-                console.log(splits)
             }
         });
     });
@@ -155,7 +159,7 @@
         for (var i = 0; i < events.length; i++) {
             var event = events[i];
             if (event.isStarting()) {
-                console.log("Starting event " + this.mapId() + ":" + event._eventId + ":" + event._pageIndex);
+                log("Starting event " + this.mapId() + ":" + event._eventId + ":" + event._pageIndex);
                 this._interpreter._ls_pageIndex = event._pageIndex;
                 break;
             }
@@ -210,12 +214,12 @@
             }
             if (common){
                 if (split.event == this._ls_eventId){
-                    console.log("Registering split for common event " + this._ls_eventId + " line " + split.line);
+                    log("Registering split for common event " + this._ls_eventId + " line " + split.line);
                     this._ls_splits.push(split)
                 }
             } else {
                 if (split.map == this._mapId && split.event == this._eventId && split.page == this._ls_pageIndex + 1){
-                    console.log("Registering split for event " + split.map + ":" + split.event + ":" + split.page + " line " + split.line);
+                    log("Registering split for event " + split.map + ":" + split.event + ":" + split.page + " line " + split.line);
                     this._ls_splits.push(split)
                 }
             }
@@ -240,6 +244,16 @@
     Scene_Title.prototype.commandNewGame = function() {
         _Scene_Title_commandNewGame.call(this);
         if (ConfigManager['autoStart'] && !startOverridden){
+            sendMessage("starttimer");
+        }
+    }
+
+    // OMORI specific overrides
+    var _Scene_OmoriTitleScreen_commandNewGame = Scene_OmoriTitleScreen.prototype.commandNewGame;
+    if (_Scene_OmoriTitleScreen_commandNewGame){
+        Scene_OmoriTitleScreen.prototype.commandNewGame = function() {
+            _Scene_OmoriTitleScreen_commandNewGame.call(this);
+            log("OMORi - New Game")
             sendMessage("starttimer");
         }
     }

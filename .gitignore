@@ -2,4 +2,4 @@
 !*/
 !.gitignore
 !README.md
-!js/plugins/LiveSplit.js
+!js/plugins/LiveSplit.*
