@@ -249,8 +249,8 @@
     }
 
     // OMORI specific overrides
-    var _Scene_OmoriTitleScreen_commandNewGame = Scene_OmoriTitleScreen.prototype.commandNewGame;
-    if (_Scene_OmoriTitleScreen_commandNewGame){
+    if (typeof Scene_OmoriTitleScreen != 'undefined'){
+        var _Scene_OmoriTitleScreen_commandNewGame = Scene_OmoriTitleScreen.prototype.commandNewGame;
         Scene_OmoriTitleScreen.prototype.commandNewGame = function() {
             _Scene_OmoriTitleScreen_commandNewGame.call(this);
             log("OMORi - New Game")
