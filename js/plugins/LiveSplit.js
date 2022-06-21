@@ -36,6 +36,7 @@
         "switch": [],
         "variable": [],
         "event": [],
+        "newgame": []
     }
 
     var prefs = {}
@@ -79,6 +80,7 @@
                         startOverridden = true;
                     }
                 });
+                log(splits["newgame"]);
                 // Generate settings file
                 if (genSettings){
                     fs.writeFile('./AutosplitterSettings.json', JSON.stringify(prefs, null, 4), (err3) => {
@@ -246,12 +248,12 @@
     Scene_Title.prototype.commandNewGame = function() {
         _Scene_Title_commandNewGame.call(this);
         if (ConfigManager['autoStart'] && !startOverridden){
-            if (ConfigManager['autoSplit']){
+            if (ConfigManager['autoSplit'] && splits["newgame"].filter(split => split.enabled).length > 0){
                 sendMessage("startorsplit");
             }else{
                 sendMessage("starttimer");
             }
-        }else if (ConfigManager['autoSplit']){
+        }else if (ConfigManager['autoSplit'] && splits["newgame"].filter(split => split.enabled).length > 0){
             sendMessage("split");
         }
     }
