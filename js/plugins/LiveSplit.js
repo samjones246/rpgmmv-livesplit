@@ -244,9 +244,8 @@
     }
 
     // Auto Start
-    var _Scene_Title_commandNewGame = Scene_Title.prototype.commandNewGame;
-    Scene_Title.prototype.commandNewGame = function() {
-        _Scene_Title_commandNewGame.call(this);
+
+    function autoStart(){
         if (ConfigManager['autoStart'] && !startOverridden){
             if (ConfigManager['autoSplit'] && splits["newgame"].filter(split => split.enabled).length > 0){
                 sendMessage("startorsplit");
@@ -257,14 +256,18 @@
             sendMessage("split");
         }
     }
+    var _Scene_Title_commandNewGame = Scene_Title.prototype.commandNewGame;
+    Scene_Title.prototype.commandNewGame = function() {
+        _Scene_Title_commandNewGame.call(this);
+        autoStart();
+    }
 
     // OMORI specific overrides
     if (typeof Scene_OmoriTitleScreen != 'undefined'){
         var _Scene_OmoriTitleScreen_commandNewGame = Scene_OmoriTitleScreen.prototype.commandNewGame;
         Scene_OmoriTitleScreen.prototype.commandNewGame = function() {
             _Scene_OmoriTitleScreen_commandNewGame.call(this);
-            log("OMORi - New Game")
-            sendMessage("starttimer");
+            autoStart();
         }
     }
 
