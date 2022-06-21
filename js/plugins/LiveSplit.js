@@ -23,6 +23,7 @@
         try{
             var key = "auto"+message
             if (!(key in ConfigManager) || ConfigManager[key]) {
+                log("Sending message: "+message);
                 client.write(message + "\r\n");
             }
         } catch(e) {
@@ -66,7 +67,8 @@
                 _data.splits.forEach(element => {
                     if (element.activators){
                         element.activators.forEach(activator => {
-                            activator.enabled = prefs[element.name]
+                            activator.enabled = prefs[element.name];
+                            activator.start = element.start;
                             splits[activator.type].push(activator);
                         });
                     }else{
