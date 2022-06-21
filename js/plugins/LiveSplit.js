@@ -118,7 +118,7 @@
             // Check transition splits
             splits["transition"].forEach(split => {
                 if (split.enabled && split.from == prevRoom && split.to == $gameMap.mapId()){
-                    sendMessage(split.start ? "start" : "split");
+                    sendMessage(split.start ? "starttimer" : "split");
                 }
             });
             prevRoom = $gameMap.mapId();
@@ -131,7 +131,7 @@
         if (!!value != !!$gameSwitches.value(switchId)){
             splits["switch"].forEach(split => {
                 if (split.enabled && split.id == switchId && (split.any || split.value == !!value)){
-                    sendMessage(split.start ? "start" : "split");
+                    sendMessage(split.start ? "starttimer" : "split");
                 }
             });
         }
@@ -144,7 +144,7 @@
         if (value != $gameVariables.value(variableId)){
             splits["variable"].forEach(split => {
                 if (split.enabled && split.id == variableId && (split.any || split.value == value)){
-                    sendMessage(split.start ? "start" : "split");
+                    sendMessage(split.start ? "starttimer" : "split");
                 }
             });
         }
@@ -232,7 +232,7 @@
         if (this._ls_splits){
             var lasti = this._ls_splits.length -1;
             if (this._ls_splits.length > 0 && (this._index == this._ls_splits[lasti].line || (this._index >= this._list.length && this._ls_splits[lasti].line == -1))){
-                sendMessage(this._ls_splits[lasti].start ? "start" : "split");
+                sendMessage(this._ls_splits[lasti].start ? "starttimer" : "split");
                 this._ls_splits.pop();
             }
         }
@@ -244,7 +244,13 @@
     Scene_Title.prototype.commandNewGame = function() {
         _Scene_Title_commandNewGame.call(this);
         if (ConfigManager['autoStart'] && !startOverridden){
-            sendMessage("starttimer");
+            if (ConfigManager['autoSplit']){
+                sendMessage("startorsplit");
+            }else{
+                sendMessage("starttimer");
+            }
+        }else if (ConfigManager['autoSplit']){
+            sendMessage("split");
         }
     }
 
