@@ -1,0 +1,16 @@
+{
+    "id": "mv-livesplit",
+    "name": "RPGMMV LiveSplit",
+    "description": "Adds LiveSplit integration, including auto start, auto split and load removal",
+    "version": "1.0.0",
+    "files": {
+      "plugins": [
+        "LiveSplit.js"
+      ],
+      "text": [],
+      "data": [],
+      "maps": [],
+      "assets": [],
+      "exec": []
+    }
+  }

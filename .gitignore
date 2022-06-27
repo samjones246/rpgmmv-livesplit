@@ -4,3 +4,5 @@
 !README.md
 !omori_encrypt.js
 !js/plugins/LiveSplit.*
+!mv-livesplit/*
+*.zip
