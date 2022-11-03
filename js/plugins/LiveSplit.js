@@ -12,7 +12,7 @@
 
     function log(msg){
 		console.log(msg);
-		fs.appendFile("LiveSplit.log", msg+"\n");
+		//fs.appendFile("LiveSplit.log", msg+"\n");
 	}
 
     function initConnection(callback){
@@ -163,7 +163,7 @@
         for (var i = 0; i < events.length; i++) {
             var event = events[i];
             if (event.isStarting()) {
-                log("Starting event " + this.mapId() + ":" + event._eventId + ":" + event._pageIndex);
+                console.log("Starting event " + this.mapId() + ":" + event._eventId + ":" + event._pageIndex);
                 this._interpreter._ls_pageIndex = event._pageIndex;
                 break;
             }
